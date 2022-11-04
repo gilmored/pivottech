@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 type product struct {
@@ -67,14 +68,13 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	json.NewEncoder(w).Encode(&product{})
 }
 
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var prod product
 	_ = json.NewDecoder(r.Body).Decode(&prod)
-	prod.ID = rand.Intn(10000000)
+	prod.ID = rand.Intn(int(time.Now().UnixNano()))
 	products = append(products, prod)
 	json.NewEncoder(w).Encode(prod)
 
@@ -83,12 +83,11 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 func updateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
+	var prod product
 	for index, item := range products {
 		if strconv.Itoa(item.ID) == params["id"] {
 			products = append(products[:index], products[index+1:]...)
-			var prod product
 			_ = json.NewDecoder(r.Body).Decode(&prod)
-			prod.ID, _ = strconv.Atoi(params["id"])
 			products = append(products, prod)
 			json.NewEncoder(w).Encode(prod)
 			return
