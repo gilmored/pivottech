@@ -54,7 +54,10 @@ func main() {
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(products)
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		log.Println("error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
 }
 
@@ -62,10 +65,12 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for _, item := range products {
-		//if string(item.ID) == params["id"] {
 		if strconv.Itoa(item.ID) == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
+			if err := json.NewEncoder(w).Encode(item); err != nil {
+				log.Println("error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 }
@@ -73,7 +78,13 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var prod product
-	_ = json.NewDecoder(r.Body).Decode(&prod)
+	//_ = json.NewDecoder(r.Body).Decode(&prod)
+	if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
+		log.Println("error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	prod.ID = rand.Intn(int(time.Now().UnixNano()))
 	products = append(products, prod)
 	json.NewEncoder(w).Encode(prod)
@@ -84,10 +95,19 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var prod product
+	id, err := strconv.Atoi(params["id"])
 	for index, item := range products {
-		if strconv.Itoa(item.ID) == params["id"] {
+		if err != nil {
+			log.Println("error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		if id == item.ID {
 			products = append(products[:index], products[index+1:]...)
-			_ = json.NewDecoder(r.Body).Decode(&prod)
+			if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
+				log.Println("error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			products = append(products, prod)
 			json.NewEncoder(w).Encode(prod)
 			return
@@ -99,8 +119,13 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
 	for index, item := range products {
-		if strconv.Itoa(item.ID) == params["id"] {
+		if err != nil {
+			log.Println("error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		if id == item.ID {
 			products = append(products[:index], products[index+1:]...)
 			break
 		}
