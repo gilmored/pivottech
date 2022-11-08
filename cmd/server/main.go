@@ -20,13 +20,6 @@ type product struct {
 
 var products []product
 
-func getProductsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(products); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
 func initProducts() {
 	bs, err := os.ReadFile("products.json")
 	if err != nil {
@@ -37,28 +30,12 @@ func initProducts() {
 	}
 }
 
-func main() {
-	initProducts()
-	r := mux.NewRouter()
-	r.HandleFunc("/products", getProductsHandler)
-
-	r.HandleFunc("/api/products", getProducts).Methods("GET")
-	r.HandleFunc("/api/products/{id}", getProduct).Methods("GET")
-	r.HandleFunc("/api/products", createProduct).Methods("POST")
-	r.HandleFunc("/api/products/{id}", updateProduct).Methods("PUT")
-	r.HandleFunc("/api/products/{id}", deleteProduct).Methods("DELETE")
-
-	log.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(products); err != nil {
 		log.Println("error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
 func getProduct(w http.ResponseWriter, r *http.Request) {
@@ -78,17 +55,25 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var prod product
-	//_ = json.NewDecoder(r.Body).Decode(&prod)
+	isID := false
+	rand.Seed(time.Now().UnixNano())
+	rNumber := len(products) + 1
+	testID := rand.Intn(rNumber) + 1000
 	if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
 		log.Println("error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	prod.ID = rand.Intn(int(time.Now().UnixNano()))
-	products = append(products, prod)
-	json.NewEncoder(w).Encode(prod)
-
+	for _, item := range products {
+		if testID == item.ID {
+			isID = true
+		}
+	}
+	if isID == false {
+		prod.ID = testID
+		products = append(products, prod)
+		json.NewEncoder(w).Encode(prod)
+	}
 }
 
 func updateProduct(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +81,11 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var prod product
 	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println("error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 	for index, item := range products {
-		if err != nil {
-			log.Println("error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 		if id == item.ID {
 			products = append(products[:index], products[index+1:]...)
 			if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
@@ -120,11 +105,11 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println("error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 	for index, item := range products {
-		if err != nil {
-			log.Println("error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 		if id == item.ID {
 			products = append(products[:index], products[index+1:]...)
 			break
@@ -132,4 +117,18 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(products)
 
+}
+
+func main() {
+	initProducts()
+	r := mux.NewRouter()
+
+	r.HandleFunc("/api/products", getProducts).Methods("GET")
+	r.HandleFunc("/api/products/{id}", getProduct).Methods("GET")
+	r.HandleFunc("/api/products", createProduct).Methods("POST")
+	r.HandleFunc("/api/products/{id}", updateProduct).Methods("PUT")
+	r.HandleFunc("/api/products/{id}", deleteProduct).Methods("DELETE")
+
+	log.Println("Listening on port 8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
