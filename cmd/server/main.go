@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
 
 type product struct {
@@ -55,25 +53,14 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var prod product
-	isID := false
-	rand.Seed(time.Now().UnixNano())
-	rNumber := len(products) + 1
-	testID := rand.Intn(rNumber) + 1000
 	if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
 		log.Println("error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	for _, item := range products {
-		if testID == item.ID {
-			isID = true
-		}
-	}
-	if isID == false {
-		prod.ID = testID
-		products = append(products, prod)
-		json.NewEncoder(w).Encode(prod)
-	}
+	prod.ID = len(products) + 1
+	products = append(products, prod)
+	json.NewEncoder(w).Encode(prod)
 }
 
 func updateProduct(w http.ResponseWriter, r *http.Request) {
