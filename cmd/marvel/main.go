@@ -17,7 +17,7 @@ func main() {
 	pubKey := os.Getenv("MARVEL_PUBLIC_KEY")
 	privKey := os.Getenv("MARVEL_PRIVATE_KEY")
 
-	client := marvel.MarvelClient{
+	client := marvel.Client{
 		BaseURL: "https://gateway.marvel.com:443/v1/public",
 		PubKey:  pubKey,
 		PrivKey: privKey,
