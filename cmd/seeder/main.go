@@ -81,13 +81,6 @@ func main() {
 	}
 	defer rows.Close()
 
-	//type prodDB struct {
-	//	id          int
-	//	name        string
-	//	description string
-	//	price       int64
-	//}
-	//var prods []prodDB
 	for rows.Next() {
 		var p prodDB
 		if err := rows.Scan(&p.id, &p.name, &p.description, &p.price); err != nil {
