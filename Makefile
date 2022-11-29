@@ -5,5 +5,5 @@ test:
 	go test -v
 
 build:
-	cd cmd/calculator
-	go build -o calculator
+	cd cmd/calculator && go text -v ./...
+	go build -o calculator && go build -o calculator
