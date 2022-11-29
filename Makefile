@@ -6,4 +6,4 @@ test:
 
 build:
 	cd cmd/calculator && go text -v ./...
-	go build -o calculator && go build -o calculator
+	go build cmd/calculator && go build -o calculator
