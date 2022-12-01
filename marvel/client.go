@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type MarvelClient struct {
+type Client struct {
 	BaseURL    string
 	PubKey     string
 	PrivKey    string
@@ -38,20 +38,20 @@ type characterResponse struct {
 	} `json:"data"`
 }
 
-func (c *MarvelClient) md5Hash(ts int64) string {
+func (c *Client) md5Hash(ts int64) string {
 	tsForHash := strconv.Itoa(int(ts))
 	hash := md5.Sum([]byte(tsForHash + c.PrivKey + c.PubKey))
 	return hex.EncodeToString(hash[:])
 }
 
-func (c *MarvelClient) signURL(url string) string {
+func (c *Client) signURL(url string) string {
 	ts := time.Now().Unix()
 	hash := c.md5Hash(ts)
 	return fmt.Sprintf("%s&ts=%d&apikey=%s&hash=%s", url, ts, c.PubKey, hash)
 
 }
 
-func (c *MarvelClient) GetCharacters(limit int) ([]character, error) {
+func (c *Client) GetCharacters(limit int) ([]character, error) {
 	url := c.BaseURL + fmt.Sprintf("/characters?limit=%d", limit)
 	url = c.signURL(url)
 	res, err := c.HttpClient.Get(url)
