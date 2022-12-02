@@ -1,6 +1,9 @@
 package calculator
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 func Add(a, b int) int {
 	return a + b
@@ -21,4 +24,8 @@ func Divide(a, b int) (int, error) {
 	}
 
 	return a / b, nil
+}
+
+func Power(x, y float64) float64 {
+	return math.Pow(x, y)
 }
